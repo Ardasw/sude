@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pink Website</title>
+    <style>
+        body {
+            background-color: pink;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            flex-direction: column; /* Added to align items vertically */
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .big-text {
+            font-size: 36px;
+        }
+
+        .heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px; /* Adjust size as needed */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        #siirMessage {
+            display: none; /* Initially hide the Siir message */
+            font-size: 24px;
+        }
+
+        #bottomButton {
+            margin-top: auto; /* Align at the bottom */
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <p class="big-text" id="label">Sudişim seni yerim</p>
+        <button id="confettiButton" onclick="toggleConfetti()">Bi dokun lütfen</button> <!-- Add a button -->
+        <p id="siirMessage"><br>Tanıştık seninle robotik mülakatında<br> 
+                            <br>Çok heyecanlanmışsın benimle tanışınca<br>
+                            <br>Ben de heyecanlandım bu güzellik karşısında<br>
+                            <br>Benimle biraz dalga geçtin sana çıkma teklifi ettiğimi hatırlayınca<br>
+<br>                                        <br>
+                            <br>Neyseki uzattık sözleşmemizi bir yıl daha<br>
+                            <br>Arada ısırsanda<br>
+                            <br>Seviyorum seni<br>
+                            <br>Bekliyorum davranmanı uysal birisi gibi<br>
+<br>                                                     <br>
+                            <br>Gıcık olunca çok tatlı oluyorsun<br>
+                            <br>Biliyor musun ne kadar seviliyorsun<br>
+                            <br>Kavgaların bile tatlış<br>
+                            <br>Yerim seni tatlış<br></p> <!-- Siir message -->
+    </div>
+    <button id="bottomButton" onclick="toggleConfetti()">Dur</button> <!-- Dur button -->
+
+    <!-- Add Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAppG7Y3dmOW2Nc5n7kj9Sau41HozoyRGY",
+            authDomain: "sude-fbda6.firebaseapp.com",
+            projectId: "sude-fbda6",
+            storageBucket: "sude-fbda6.appspot.com",
+            messagingSenderId: "917718865549",
+            appId: "1:917718865549:web:0be8456c6fff5a05cf34c4"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script>
+        var confettiActive = false; // Flag to track confetti state
+        var canvas = null; // Reference to the confetti canvas
+        var label = document.getElementById("label");
+        var confettiButton = document.getElementById("confettiButton");
+        var siirMessage = document.getElementById("siirMessage");
+
+        function fireConfetti() {
+            canvas = document.createElement('canvas');
+            document.body.appendChild(canvas);
+            canvas.style.position = "absolute";
+            canvas.style.top = "0";
+            canvas.style.left = "0";
+            canvas.style.pointerEvents = "none"; // Make canvas ignore mouse events
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            var ctx = canvas.getContext('2d');
+
+            var pieces = [];
+            var numberOfPieces = 200;
+            var lastUpdateTime = Date.now();
+
+            function randomColor() {
+                var colors = ['#f00', '#0f0', '#00f', '#0ff', '#f0f', '#ff0'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            function update() {
+                var now = Date.now(),
+                    dt = now - lastUpdateTime;
+
+                for (var i = pieces.length - 1; i >= 0; i--) {
+                    var p = pieces[i];
+
+                    if (p.y > canvas.height) {
+                        pieces.splice(i, 1);
+                        continue;
+                    }
+
+                    p.y += p.gravity * dt;
+                    p.rotation += p.rotationSpeed * dt;
+                }
+
+                while (pieces.length < numberOfPieces) {
+                    pieces.push({
+                        x: Math.random() * canvas.width,
+                        y: -20,
+                        radius: Math.random() * 10 + 5,
+                        color: randomColor(),
+                        rotation: Math.random() * 360,
+                        rotationSpeed: (Math.random() - 0.5) * 0.1,
+                        speed: Math.random() * 3 + 2,
+                        gravity: Math.random() * 0.5 + 0.5
+                    });
+                }
+
+                lastUpdateTime = now;
+
+                setTimeout(update, 1);
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                pieces.forEach(function (p) {
+                    ctx.save();
+                    ctx.fillStyle = p.color;
+                    ctx.translate(p.x + p.radius / 2, p.y + p.radius / 2);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillRect(-p.radius / 2, -p.radius / 2, p.radius, p.radius);
+                    ctx.restore();
+                });
+
+                if (confettiActive) {
+                    requestAnimationFrame(draw);
+                } else {
+                    document.body.removeChild(canvas); // Remove the canvas if confetti is stopped
+                }
+            }
+
+            update();
+            draw();
+        }
+
+        function toggleConfetti() {
+            confettiActive = !confettiActive; // Toggle the confetti state
+
+            if (confettiActive) {
+                fireConfetti(); // Start confetti if not active
+                confettiButton.textContent = "Dur"; // Change button text to "Dur"
+                siirMessage.style.display = "block"; // Show the Siir message
+            } else {
+                // Stop confetti if active
+                document.body.removeChild(canvas); // Remove the canvas if confetti is stopped
+                confettiButton.textContent = "Bi dokun lütfen"; // Change button text back to "Bi dokun lütfen"
+                siirMessage.style.display = "none"; // Hide the Siir message
+            }
+        }
+    </script>
+</body>
+</html>
